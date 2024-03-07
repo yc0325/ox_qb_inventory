@@ -119,11 +119,11 @@ function db.savePlayer(owner, inventory)
     return MySQL.prepare(Query.UPDATE_PLAYER, { inventory, owner })
 end
 
-function db.saveStash(owner, dbId, inventory)
+function db.saveStash(dbId, inventory)
     return MySQL.prepare(Query.UPSERT_STASH, { inventory,  dbId })
 end
 
-function db.loadStash(owner, name)
+function db.loadStash( name)
     return MySQL.prepare.await(Query.SELECT_STASH, {  name })
 end
 

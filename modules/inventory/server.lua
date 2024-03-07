@@ -696,7 +696,7 @@ function Inventory.Save(inv)
         return db.saveGlovebox(inv.dbId, data)
     end
 
-    return db.saveStash(inv.owner, inv.dbId, data)
+    return db.saveStash(inv.dbId, data)
 end
 
 local function randomItem(loot, items, size)
@@ -784,7 +784,7 @@ function Inventory.Load(id, invType, owner, datastore)
                 end
 			else result = result[invType] end
 		elseif not datastore then
-			result = db.loadStash(owner or '', id)
+			result = db.loadStash( id)
 		end
 	end
 
@@ -1905,7 +1905,7 @@ function Inventory.Confiscate(source)
 	local inv = Inventories[source]
 
 	if inv?.player then
-		db.saveStash(inv.owner, inv.owner, json.encode(minimal(inv)))
+		db.saveStash( inv.owner, json.encode(minimal(inv)))
 		table.wipe(inv.items)
 		inv.weight = 0
 		inv.changed = true
