@@ -88,14 +88,30 @@ for type, data in pairs(data('weapons')) do
 	end
 end
 
-for k, v in pairs(data 'items') do
-	v.name = k
+--for k, v in pairs(lib.load('data.items')) do
+--	v.name = k
+--	local success, response = pcall(newItem, v)
+--
+--    if not success then
+--        warn(('An error occurred while creating item "%s" callback!\n^1SCRIPT ERROR: %s^0'):format(k, response))
+--    end
+--end
+
+for k, v in pairs(QBCore.Shared.Items) do
+
+	if v.unique then v.stack = v.unique end
+	if v.shouldClose then v.close = v.shouldClose end
+	if v.decay then v.degrade = v.decay end
+	if v.delete then v.decay = v.delete end
+
 	local success, response = pcall(newItem, v)
 
+	
     if not success then
         warn(('An error occurred while creating item "%s" callback!\n^1SCRIPT ERROR: %s^0'):format(k, response))
     end
 end
+
 
 ItemList.cash = ItemList.money
 

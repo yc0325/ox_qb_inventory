@@ -14,11 +14,11 @@ end
 
 shared = {
     resource = GetCurrentResourceName(),
-    framework = GetConvar('inventory:framework', 'esx'),
-    playerslots = GetConvarInt('inventory:slots', 50),
-    playerweight = GetConvarInt('inventory:weight', 30000),
+    framework = GetConvar('inventory:framework', 'qb'),
+    playerslots = GetConvarInt('inventory:slots', 41),
+    playerweight = GetConvarInt('inventory:weight', 30*1000),
     target = GetConvarInt('inventory:target', 0) == 1,
-    police = json.decode(GetConvar('inventory:police', '["police", "sheriff"]')),
+    police = json.decode(GetConvar('inventory:police', '["police", "bcso", "sast", "sapr"]')),
 }
 
 do
@@ -137,22 +137,6 @@ local function spamError(err)
     error(err, 0)
 end
 
-CreateThread(function()
-    if shared.framework == 'ox' then
-        local file = ('imports/%s.lua'):format(lib.context)
-        local import = LoadResourceFile('ox_core', file)
-        local func, err = load(import, ('@@ox_core/%s'):format(file))
-
-        if not func or err then
-            shared.ready = false
-            return spamError(err)
-        end
-
-        func()
-
-        Ox = Ox or {}
-    end
-end)
 
 ---@param name string
 ---@return table

@@ -54,170 +54,108 @@ local Inventory
 CreateThread(function()
 	Inventory = require 'modules.inventory.server'
 
-	if shared.framework == 'esx' then
-		local success, items = pcall(MySQL.query.await, 'SELECT * FROM items')
+	local QBCore = exports['qb-core']:GetCoreObject()
+	local items = QBCore.Shared.Items
 
-		if success and items and next(items) then
-			local dump = {}
-			local count = 0
+	if items and table.type(items) ~= 'empty' then
+		local dump = {}
+		local count = 0
+		local ignoreList = {
+			"weapon_",
+			"pistol_",
+			"pistol50_",
+			"revolver_",
+			"smg_",
+			"combatpdw_",
+			"shotgun_",
+			"rifle_",
+			"carbine_",
+			"gusenberg_",
+			"sniper_",
+			"snipermax_",
+			"tint_",
+			"_ammo"
+		}
 
-			for i = 1, #items do
-				local item = items[i]
+		local function checkIgnoredNames(name)
+			for i = 1, #ignoreList do
+				if string.find(name, ignoreList[i]) then
+					return true
+				end
+			end
+			return false
+		end
 
-				if not ItemList[item.name] then
-					item.close = item.closeonuse == nil and true or item.closeonuse
-					item.stack = item.stackable == nil and true or item.stackable
+		for k, item in pairs(items) do
+			-- Explain why this wouldn't be table to me, because numerous people have been getting "attempted to index number" here
+			if type(item) == 'table' then
+				-- Some people don't assign the name property, but it seemingly always matches the index anyway.
+				if not item.name then item.name = k end
+
+				if not ItemList[item.name] and not checkIgnoredNames(item.name) then
+					item.close = item.shouldClose == nil and true or item.shouldClose
+					item.stack = not item.unique and true
 					item.description = item.description
 					item.weight = item.weight or 0
-					dump[i] = item
+					dump[k] = item
 					count += 1
 				end
 			end
-
-			if table.type(dump) ~= "empty" then
-				local file = {string.strtrim(LoadResourceFile(shared.resource, 'data/items.lua'))}
-				file[1] = file[1]:gsub('}$', '')
-
-				---@todo separate into functions for reusability, properly handle nil values
-				local itemFormat = [[
-
-	[%q] = {
-		label = %q,
-		weight = %s,
-		stack = %s,
-		close = %s,
-		description = %q
-	},
-]]
-				local fileSize = #file
-
-				for _, item in pairs(dump) do
-					if not ItemList[item.name] then
-						fileSize += 1
-
-						local itemStr = itemFormat:format(item.name, item.label, item.weight, item.stack, item.close, item.description and json.encode(item.description) or 'nil')
-						-- temporary solution for nil values
-						itemStr = itemStr:gsub('[%s]-[%w]+ = "?nil"?,?', '')
-						file[fileSize] = itemStr
-						ItemList[item.name] = item
-					end
-				end
-
-				file[fileSize+1] = '}'
-
-				SaveResourceFile(shared.resource, 'data/items.lua', table.concat(file), -1)
-				shared.info(count, 'items have been copied from the database.')
-				shared.info('You should restart the resource to load the new items.')
-			end
-
-			shared.info('Database contains', #items, 'items.')
 		end
 
-		Wait(500)
+		if table.type(dump) ~= 'empty' then
+			local file = {string.strtrim(LoadResourceFile(shared.resource, 'data/items.lua'))}
+			file[1] = file[1]:gsub('}$', '')
 
-	elseif shared.framework == 'qb' then
-		local QBCore = exports['qb-core']:GetCoreObject()
-		local items = QBCore.Shared.Items
+			---@todo separate into functions for reusability, properly handle nil values
+			local itemFormat = [[
 
-		if items and table.type(items) ~= 'empty' then
-			local dump = {}
-			local count = 0
-			local ignoreList = {
-				"weapon_",
-				"pistol_",
-				"pistol50_",
-				"revolver_",
-				"smg_",
-				"combatpdw_",
-				"shotgun_",
-				"rifle_",
-				"carbine_",
-				"gusenberg_",
-				"sniper_",
-				"snipermax_",
-				"tint_",
-				"_ammo"
-			}
+				[%q] = {
+					label = %q,
+					weight = %s,
+					stack = %s,
+					close = %s,
+					description = %q,
+					client = {
+						status = {
+							hunger = %s,
+							thirst = %s,
+							stress = %s
+						},
+						image = %q,
+					}
+				},
+			]]
 
-			local function checkIgnoredNames(name)
-				for i = 1, #ignoreList do
-					if string.find(name, ignoreList[i]) then
-						return true
-					end
-				end
-				return false
-			end
+			local fileSize = #file
 
-			for k, item in pairs(items) do
-				-- Explain why this wouldn't be table to me, because numerous people have been getting "attempted to index number" here
-				if type(item) == 'table' then
-					-- Some people don't assign the name property, but it seemingly always matches the index anyway.
-					if not item.name then item.name = k end
+			for _, item in pairs(dump) do
+				if not ItemList[item.name] then
+					fileSize += 1
 
-					if not ItemList[item.name] and not checkIgnoredNames(item.name) then
-						item.close = item.shouldClose == nil and true or item.shouldClose
-						item.stack = not item.unique and true
-						item.description = item.description
-						item.weight = item.weight or 0
-						dump[k] = item
-						count += 1
-					end
+					---@todo cry
+					local itemStr = itemFormat:format(item.name, item.label, item.weight, item.stack, item.close, item.description or 'nil', item.hunger or 'nil', item.thirst or 'nil', item.stress or 'nil', item.image or 'nil')
+					-- temporary solution for nil values
+					itemStr = itemStr:gsub('[%s]-[%w]+ = "?nil"?,?', '')
+					-- temporary solution for empty status table
+					itemStr = itemStr:gsub('[%s]-[%w]+ = %{[%s]+%},?', '')
+					-- temporary solution for empty client table
+					itemStr = itemStr:gsub('[%s]-[%w]+ = %{[%s]+%},?', '')
+					file[fileSize] = itemStr
+					ItemList[item.name] = item
 				end
 			end
 
-			if table.type(dump) ~= 'empty' then
-				local file = {string.strtrim(LoadResourceFile(shared.resource, 'data/items.lua'))}
-				file[1] = file[1]:gsub('}$', '')
+			file[fileSize+1] = '}'
 
-				---@todo separate into functions for reusability, properly handle nil values
-				local itemFormat = [[
-
-	[%q] = {
-		label = %q,
-		weight = %s,
-		stack = %s,
-		close = %s,
-		description = %q,
-		client = {
-			status = {
-				hunger = %s,
-				thirst = %s,
-				stress = %s
-			},
-			image = %q,
-		}
-	},
-]]
-
-				local fileSize = #file
-
-				for _, item in pairs(dump) do
-					if not ItemList[item.name] then
-						fileSize += 1
-
-						---@todo cry
-						local itemStr = itemFormat:format(item.name, item.label, item.weight, item.stack, item.close, item.description or 'nil', item.hunger or 'nil', item.thirst or 'nil', item.stress or 'nil', item.image or 'nil')
-						-- temporary solution for nil values
-						itemStr = itemStr:gsub('[%s]-[%w]+ = "?nil"?,?', '')
-						-- temporary solution for empty status table
-						itemStr = itemStr:gsub('[%s]-[%w]+ = %{[%s]+%},?', '')
-						-- temporary solution for empty client table
-						itemStr = itemStr:gsub('[%s]-[%w]+ = %{[%s]+%},?', '')
-						file[fileSize] = itemStr
-						ItemList[item.name] = item
-					end
-				end
-
-				file[fileSize+1] = '}'
-
-				SaveResourceFile(shared.resource, 'data/items.lua', table.concat(file), -1)
-				shared.info(count, 'items have been copied from the QBCore.Shared.Items.')
-				shared.info('You should restart the resource to load the new items.')
-			end
+			SaveResourceFile(shared.resource, 'data/items.lua', table.concat(file), -1)
+			shared.info(count, 'items have been copied from the QBCore.Shared.Items.')
+			shared.info('You should restart the resource to load the new items.')
 		end
-
-		Wait(500)
 	end
+
+	Wait(500)
+	
 
 	local count = 0
 

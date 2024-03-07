@@ -83,15 +83,15 @@ SetTimeout(500, function()
 	server.GetPlayerFromId = QBCore.Functions.GetPlayer
 	local weapState = GetResourceState('qb-weapons')
 
-	if weapState ~= 'missing' and (weapState == 'started' or weapState == 'starting') then
-		StopResource('qb-weapons')
-	end
+	--if weapState ~= 'missing' and (weapState == 'started' or weapState == 'starting') then
+	--	StopResource('qb-weapons')
+	--end
 
-	local shopState = GetResourceState('qb-shops')
+	--local shopState = GetResourceState('qb-shops')
 
-	if shopState ~= 'missing' and (shopState == 'started' or shopState == 'starting') then
-		StopResource('qb-shops')
-	end
+	--if shopState ~= 'missing' and (shopState == 'started' or shopState == 'starting') then
+	--	StopResource('qb-shops')
+	--end
 
 	for _, Player in pairs(QBCore.Functions.GetQBPlayers()) do setupPlayer(Player) end
 end)
