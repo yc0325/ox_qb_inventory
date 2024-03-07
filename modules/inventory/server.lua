@@ -2226,8 +2226,6 @@ local function prepareInventorySave(inv, buffer, time)
     table.wipe(buffer)
 
     if inv.player then
-        if shared.framework == 'esx' then return end
-
         return 1, { data, inv.owner }
     end
 
@@ -2239,7 +2237,7 @@ local function prepareInventorySave(inv, buffer, time)
         return 3, { data, inv.dbId }
     end
 
-    return 4, { data, inv.owner and tostring(inv.owner) or '', inv.dbId }
+    return 4, { data, inv.dbId }
 end
 
 local isSaving = false

@@ -1,61 +1,52 @@
 if not lib then return end
 
 local Query = {
-    SELECT_STASH = 'SELECT data FROM ox_inventory WHERE owner = ? AND name = ?',
-    UPDATE_STASH = 'UPDATE ox_inventory SET data = ? WHERE owner = ? AND name = ?',
-    UPSERT_STASH = 'INSERT INTO ox_inventory (data, owner, name) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE data = VALUES(data)',
-    INSERT_STASH = 'INSERT INTO ox_inventory (owner, name) VALUES (?, ?)',
-    SELECT_GLOVEBOX = 'SELECT plate, glovebox FROM `{vehicle_table}` WHERE `{vehicle_column}` = ?',
-    SELECT_TRUNK = 'SELECT plate, trunk FROM `{vehicle_table}` WHERE `{vehicle_column}` = ?',
+    SELECT_STASH = 'SELECT items FROM stashitems WHERE  name = ?',
+    UPDATE_STASH = 'UPDATE stashitems SET items = ? WHERE name = ?',
+    UPSERT_STASH = 'INSERT INTO stashitems (items, name) VALUES (?, ?) ON DUPLICATE KEY UPDATE items = VALUES(items)',
+    INSERT_STASH = 'INSERT INTO stashitems (name) VALUES ( ?)',
+    SELECT_GLOVEBOX = 'SELECT plate, items FROM `{glovebox_table}` WHERE `{glovebox_column}` = ?',
+    SELECT_TRUNK = 'SELECT plate, items FROM `{trunk_table}` WHERE `{trunk_column}` = ?',
     SELECT_PLAYER = 'SELECT inventory FROM `{user_table}` WHERE `{user_column}` = ?',
-    UPDATE_TRUNK = 'UPDATE `{vehicle_table}` SET trunk = ? WHERE `{vehicle_column}` = ?',
-    UPDATE_GLOVEBOX = 'UPDATE `{vehicle_table}` SET glovebox = ? WHERE `{vehicle_column}` = ?',
+    UPDATE_TRUNK = 'UPDATE `{trunk_table}` SET items = ? WHERE `{trunk_column}` = ?',
+    UPDATE_GLOVEBOX = 'UPDATE `{glovebox_table}` SET items = ? WHERE `{glovebox_column}` = ?',
     UPDATE_PLAYER = 'UPDATE `{user_table}` SET inventory = ? WHERE `{user_column}` = ?',
 }
 
 Citizen.CreateThreadNow(function()
     local playerTable, playerColumn, vehicleTable, vehicleColumn
 
-    if shared.framework == 'ox' then
-        playerTable = 'character_inventory'
-        playerColumn = 'charid'
-        vehicleTable = 'vehicles'
-        vehicleColumn = 'id'
-    elseif shared.framework == 'esx' then
-        playerTable = 'users'
-        playerColumn = 'identifier'
-        vehicleTable = 'owned_vehicles'
-        vehicleColumn = 'plate'
-    elseif shared.framework == 'qb' then
+    if shared.framework == 'qb' then
         playerTable = 'players'
         playerColumn = 'citizenid'
         vehicleTable = 'player_vehicles'
         vehicleColumn = 'plate'
-    elseif shared.framework == 'nd' then
-        playerTable = 'characters'
-        playerColumn = 'character_id'
-        vehicleTable = 'vehicles'
-        vehicleColumn = 'id'
+        gloveboxTable = 'gloveboxitems'
+        gloveboxColumn = 'plate'
+        trunkTable = 'trunkitems'
+        trunkColumn = 'plate'
     end
-
+    
     for k, v in pairs(Query) do
         Query[k] = v:gsub('{user_table}', playerTable):gsub('{user_column}', playerColumn):gsub('{vehicle_table}',
-            vehicleTable):gsub('{vehicle_column}', vehicleColumn)
+            vehicleTable):gsub('{vehicle_column}', vehicleColumn):gsub('{glovebox_table}',
+            gloveboxTable):gsub('{glovebox_column}', gloveboxColumn):gsub('{trunk_table}',
+            trunkTable):gsub('{trunk_column}', trunkColumn)
     end
 
     Wait(0)
 
-    local success, result = pcall(MySQL.scalar.await, 'SELECT 1 FROM ox_inventory')
+    --local success, result = pcall(MySQL.scalar.await, 'SELECT 1 FROM stashitems')
 
-    if not success then
-        MySQL.query([[CREATE TABLE `ox_inventory` (
-			`owner` varchar(60) DEFAULT NULL,
-			`name` varchar(100) NOT NULL,
-			`data` longtext DEFAULT NULL,
-			`lastupdated` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-			UNIQUE KEY `owner` (`owner`,`name`)
-		)]])
-    else
+    --if not success then
+    --    MySQL.query([[CREATE TABLE `stashitems` (
+	--		`owner` varchar(60) DEFAULT NULL,
+	--		`name` varchar(100) NOT NULL,
+	--		`data` longtext DEFAULT NULL,
+	--		`lastupdated` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+	--		UNIQUE KEY `owner` (`owner`,`name`)
+	--	)]])
+    --else
         -- Shouldn't be needed anymore; was used for some data conversion for v2.5.0 (back in March 2022)
         -- result = MySQL.query.await("SELECT owner, name FROM ox_inventory WHERE NOT owner = ''")
 
@@ -79,42 +70,42 @@ Citizen.CreateThreadNow(function()
         -- 		MySQL.transaction(parameters)
         -- 	end
         -- end
-    end
+    --end
 
-    result = MySQL.query.await(('SHOW COLUMNS FROM `%s`'):format(vehicleTable))
-
-    if result then
-        local glovebox, trunk
-
-        for i = 1, #result do
-            local column = result[i]
-            if column.Field == 'glovebox' then
-                glovebox = true
-            elseif column.Field == 'trunk' then
-                trunk = true
-            end
-        end
-
-        if not glovebox then
-            MySQL.query(('ALTER TABLE `%s` ADD COLUMN `glovebox` LONGTEXT NULL'):format(vehicleTable))
-        end
-
-        if not trunk then
-            MySQL.query(('ALTER TABLE `%s` ADD COLUMN `trunk` LONGTEXT NULL'):format(vehicleTable))
-        end
-    end
-
-    success, result = pcall(MySQL.scalar.await, ('SELECT inventory FROM `%s`'):format(playerTable))
-
-    if not success then
-        MySQL.query(('ALTER TABLE `%s` ADD COLUMN `inventory` LONGTEXT NULL'):format(playerTable))
-    end
-
-    local clearStashes = GetConvar('inventory:clearstashes', '6 MONTH')
-
-	if clearStashes ~= '' then
-		pcall(MySQL.query.await, ('DELETE FROM ox_inventory WHERE lastupdated < (NOW() - INTERVAL %s)'):format(clearStashes))
-	end
+    --result = MySQL.query.await(('SHOW COLUMNS FROM `%s`'):format(vehicleTable))
+--
+    --if result then
+    --    local glovebox, trunk
+--
+    --    for i = 1, #result do
+    --        local column = result[i]
+    --        if column.Field == 'glovebox' then
+    --            glovebox = true
+    --        elseif column.Field == 'trunk' then
+    --            trunk = true
+    --        end
+    --    end
+--
+    --    if not glovebox then
+    --        MySQL.query(('ALTER TABLE `%s` ADD COLUMN `glovebox` LONGTEXT NULL'):format(vehicleTable))
+    --    end
+--
+    --    if not trunk then
+    --        MySQL.query(('ALTER TABLE `%s` ADD COLUMN `trunk` LONGTEXT NULL'):format(vehicleTable))
+    --    end
+    --end
+--
+    --success, result = pcall(MySQL.scalar.await, ('SELECT inventory FROM `%s`'):format(playerTable))
+--
+    --if not success then
+    --    MySQL.query(('ALTER TABLE `%s` ADD COLUMN `inventory` LONGTEXT NULL'):format(playerTable))
+    --end
+--
+    --local clearStashes = GetConvar('inventory:clearstashes', '6 MONTH')
+--
+	--if clearStashes ~= '' then
+	--	pcall(MySQL.query.await, ('DELETE FROM ox_inventory WHERE lastupdated < (NOW() - INTERVAL %s)'):format(clearStashes))
+	--end
 end)
 
 db = {}
@@ -129,11 +120,11 @@ function db.savePlayer(owner, inventory)
 end
 
 function db.saveStash(owner, dbId, inventory)
-    return MySQL.prepare(Query.UPSERT_STASH, { inventory, owner and tostring(owner) or '', dbId })
+    return MySQL.prepare(Query.UPSERT_STASH, { inventory,  dbId })
 end
 
 function db.loadStash(owner, name)
-    return MySQL.prepare.await(Query.SELECT_STASH, { owner and tostring(owner) or '', name })
+    return MySQL.prepare.await(Query.SELECT_STASH, {  name })
 end
 
 function db.saveGlovebox(id, inventory)
