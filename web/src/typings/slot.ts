@@ -3,17 +3,17 @@ export type Slot = {
   name?: string;
   count?: number;
   weight?: number;
-  metadata?: {
+  info?: {
     [key: string]: any;
   };
-  durability?: number;
+  quality?: number;
 };
 
 export type SlotWithItem = Slot & {
   name: string;
   count: number;
   weight: number;
-  durability?: number;
+  quality?: number;
   price?: number;
   currency?: string;
   ingredients?: { [key: string]: number };

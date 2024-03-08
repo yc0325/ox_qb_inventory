@@ -8,7 +8,7 @@ TriggerEvent('ox_inventory:itemList', ItemList)
 
 Items.containers = require 'modules.items.containers'
 
--- Possible metadata when creating garbage
+-- Possible info when creating garbage
 local trash = {
 	{description = 'An old rolled up newspaper.', weight = 200, image = 'trash_newspaper'},
 	{description = 'A discarded burger shot carton.', weight = 50, image = 'trash_burgershot'},
@@ -93,7 +93,7 @@ CreateThread(function()
 				if not item.name then item.name = k end
 
 				if not ItemList[item.name] and not checkIgnoredNames(item.name) then
-					item.close = item.shouldClose == nil and true or item.shouldClose
+					item.close = item.close == nil and true or item.close
 					item.stack = not item.unique and true
 					item.description = item.description
 					item.weight = item.weight or 0
@@ -187,78 +187,78 @@ local function GenerateSerial(text)
 	return ('%s%s%s'):format(math.random(100000,999999), text == nil and GenerateText(3) or text, math.random(100000,999999))
 end
 
-local function setItemDurability(item, metadata)
+local function setItemDurability(item, info)
 	local degrade = item.degrade
 
 	if degrade then
-		metadata.durability = os.time()+(degrade * 60)
-		metadata.degrade = degrade
-	elseif item.durability then
-		metadata.durability = 100
+		info.quality = os.time()+(degrade * 60)
+		info.degrade = degrade
+	elseif item.quality then
+		info.quality = 100
 	end
 
-	return metadata
+	return info
 end
 
 local TriggerEventHooks = require 'modules.hooks.server'
 
 ---@param inv inventory
 ---@param item OxServerItem
----@param metadata any
+---@param info any
 ---@param count number
 ---@return table, number
----Generates metadata for new items being created through AddItem, buyItem, etc.
-function Items.Metadata(inv, item, metadata, count)
+---Generates info for new items being created through AddItem, buyItem, etc.
+function Items.info(inv, item, info, count)
 	if type(inv) ~= 'table' then inv = Inventory(inv) end
-	if not item.weapon then metadata = not metadata and {} or type(metadata) == 'string' and {type=metadata} or metadata end
+	if not item.weapon then info = not info and {} or type(info) == 'string' and {type=info} or info end
 	if not count then count = 1 end
 
-	---@cast metadata table<string, any>
+	---@cast info table<string, any>
 
 	if item.weapon then
-		if type(metadata) ~= 'table' then metadata = {} end
-		if not metadata.durability then metadata.durability = 100 end
-		if not metadata.ammo and item.ammoname then metadata.ammo = 0 end
-		if not metadata.components then metadata.components = {} end
+		if type(info) ~= 'table' then info = {} end
+		if not info.quality then info.quality = 100 end
+		if not info.ammo and item.ammoname then info.ammo = 0 end
+		if not info.components then info.components = {} end
 
-		if metadata.registered ~= false and (metadata.ammo or item.name == 'WEAPON_STUNGUN') then
-			local registered = type(metadata.registered) == 'string' and metadata.registered or inv?.player?.name
+		if info.registered ~= false and (info.ammo or item.name == 'WEAPON_STUNGUN') then
+			local registered = type(info.registered) == 'string' and info.registered or inv?.player?.name
 
 			if registered then
-				metadata.registered = registered
-				metadata.serial = GenerateSerial(metadata.serial)
+				info.registered = registered
+				info.serie = GenerateSerial(info.serie)
 			else
-				metadata.registered = nil
+				info.registered = nil
 			end
 		end
 
 		if item.hash == `WEAPON_PETROLCAN` or item.hash == `WEAPON_HAZARDCAN` or item.hash == `WEAPON_FERTILIZERCAN` or item.hash == `WEAPON_FIREEXTINGUISHER` then
-			metadata.ammo = metadata.durability
+			info.ammo = info.quality
 		end
 	else
 		local container = Items.containers[item.name]
 
 		if container then
 			count = 1
-			metadata.container = metadata.container or GenerateText(3)..os.time()
-			metadata.size = container.size
-		elseif not next(metadata) then
+			info.container = info.container or GenerateText(3)..os.time()
+			info.size = container.size
+		elseif not next(info) then
 			if item.name == 'identification' then
 				count = 1
-				metadata = {
+				info = {
 					type = inv.player.name,
 					description = locale('identification', (inv.player.sex) and locale('male') or locale('female'), inv.player.dateofbirth)
 				}
 			elseif item.name == 'garbage' then
 				local trashType = trash[math.random(1, #trash)]
-				metadata.image = trashType.image
-				metadata.weight = trashType.weight
-				metadata.description = trashType.description
+				info.image = trashType.image
+				info.weight = trashType.weight
+				info.description = trashType.description
 			end
 		end
 
-		if not metadata.durability then
-			metadata = setItemDurability(ItemList[item.name], metadata)
+		if not info.quality then
+			info = setItemDurability(ItemList[item.name], info)
 		end
 	end
 
@@ -268,85 +268,85 @@ function Items.Metadata(inv, item, metadata, count)
 
 	local response = TriggerEventHooks('createItem', {
 		inventoryId = inv and inv.id,
-		metadata = metadata,
+		info = info,
 		item = item,
 		count = count,
 	})
 
 	if type(response) == 'table' then
-		metadata = response
+		info = response
 	end
 
-	if metadata.imageurl and Utils.IsValidImageUrl then
-		if Utils.IsValidImageUrl(metadata.imageurl) then
-			Utils.DiscordEmbed('Valid image URL', ('Created item "%s" (%s) with valid url in "%s".\n%s\nid: %s\nowner: %s'):format(metadata.label or item.label, item.name, inv.label, metadata.imageurl, inv.id, inv.owner, metadata.imageurl), metadata.imageurl, 65280)
+	if info.imageurl and Utils.IsValidImageUrl then
+		if Utils.IsValidImageUrl(info.imageurl) then
+			Utils.DiscordEmbed('Valid image URL', ('Created item "%s" (%s) with valid url in "%s".\n%s\nid: %s\nowner: %s'):format(info.label or item.label, item.name, inv.label, info.imageurl, inv.id, inv.owner, info.imageurl), info.imageurl, 65280)
 		else
-			Utils.DiscordEmbed('Invalid image URL', ('Created item "%s" (%s) with invalid url in "%s".\n%s\nid: %s\nowner: %s'):format(metadata.label or item.label, item.name, inv.label, metadata.imageurl, inv.id, inv.owner, metadata.imageurl), metadata.imageurl, 16711680)
-			metadata.imageurl = nil
+			Utils.DiscordEmbed('Invalid image URL', ('Created item "%s" (%s) with invalid url in "%s".\n%s\nid: %s\nowner: %s'):format(info.label or item.label, item.name, inv.label, info.imageurl, inv.id, inv.owner, info.imageurl), info.imageurl, 16711680)
+			info.imageurl = nil
 		end
 	end
 
-	return metadata, count
+	return info, count
 end
 
----@param metadata table<string, any>
+---@param info table<string, any>
 ---@param item OxServerItem
 ---@param name string
 ---@param ostime number
----Validate (and in some cases convert) item metadata when an inventory is being loaded.
-function Items.CheckMetadata(metadata, item, name, ostime)
-	if metadata.bag then
-		metadata.container = metadata.bag
-		metadata.size = Items.containers[name]?.size or {5, 1000}
-		metadata.bag = nil
+---Validate (and in some cases convert) item info when an inventory is being loaded.
+function Items.CheckMetadata(info, item, name, ostime)
+	if info.bag then
+		info.container = info.bag
+		info.size = Items.containers[name]?.size or {5, 1000}
+		info.bag = nil
 	end
 
-	local durability = metadata.durability
+	local quality = info.quality
 
-	if durability then
-		if durability < 0 or durability > 100 and ostime >= durability then
-			metadata.durability = 0
+	if quality then
+		if quality < 0 or quality > 100 and ostime >= quality then
+			info.quality = 0
 		end
 	else
-		metadata = setItemDurability(item, metadata)
+		info = setItemDurability(item, info)
 	end
 
 	if item.weapon then
-		if metadata.components then
-			if table.type(metadata.components) == 'array' then
-				for i = #metadata.components, 1, -1 do
-					if not ItemList[metadata.components[i]] then
-						table.remove(metadata.components, i)
+		if info.components then
+			if table.type(info.components) == 'array' then
+				for i = #info.components, 1, -1 do
+					if not ItemList[info.components[i]] then
+						table.remove(info.components, i)
 					end
 				end
 			else
 				local components = {}
 				local size = 0
 
-				for _, component in pairs(metadata.components) do
+				for _, component in pairs(info.components) do
 					if component and ItemList[component] then
 						size += 1
 						components[size] = component
 					end
 				end
 
-				metadata.components = components
+				info.components = components
 			end
 		end
 
-		if metadata.serial and item.throwable then
-			metadata.serial = nil
+		if info.serie and item.throwable then
+			info.serie = nil
 		end
 
-		if metadata.specialAmmo and type(metadata.specialAmmo) ~= 'string' then
-			metadata.specialAmmo = nil
+		if info.specialAmmo and type(info.specialAmmo) ~= 'string' then
+			info.specialAmmo = nil
 		end
 	end
 
-	return metadata
+	return info
 end
 
----Update item durability, and call `Inventory.RemoveItem` if it was removed from decay.
+---Update item quality, and call `Inventory.RemoveItem` if it was removed from decay.
 ---@param inv OxInventory
 ---@param slot SlotWithItem
 ---@param item OxServerItem
@@ -354,24 +354,24 @@ end
 ---@param ostime? number
 ---@return boolean? removed
 function Items.UpdateDurability(inv, slot, item, value, ostime)
-    local durability = slot.metadata.durability or value
+    local quality = slot.info.quality or value
 
-    if not durability then return end
+    if not quality then return end
 
     if value then
-        durability = value
-    elseif ostime and durability > 100 and ostime >= durability then
-        durability = 0
+        quality = value
+    elseif ostime and quality > 100 and ostime >= quality then
+        quality = 0
     end
 
-    if item.decay and durability == 0 then
+    if item.decay and quality == 0 then
         return Inventory.RemoveItem(inv, slot.name, slot.count, nil, slot.slot)
     end
 
-    if slot.metadata.durability == durability then return end
+    if slot.info.quality == quality then return end
 
     inv.changed = true
-    slot.metadata.durability = durability
+    slot.info.quality = quality
 
     inv:syncSlotsWithClients({
         {
@@ -395,7 +395,7 @@ end
 
 -- Item('testburger', function(event, item, inventory, slot, data)
 -- 	if event == 'usingItem' then
--- 		if Inventory.GetItem(inventory, item, inventory.items[slot].metadata, true) > 0 then
+-- 		if Inventory.GetItem(inventory, item, inventory.items[slot].info, true) > 0 then
 -- 			-- if we return false here, we can cancel item use
 -- 			return {
 -- 				inventory.label, event, 'external item use poggies'

@@ -18,7 +18,7 @@ const SlotTooltip: React.ForwardRefRenderFunction<
     if (!item.ingredients) return null;
     return Object.entries(item.ingredients).sort((a, b) => a[1] - b[1]);
   }, [item]);
-  const description = item.metadata?.description || itemData?.description;
+  const description = item.info?.description || itemData?.description;
   const ammoName = itemData?.ammoName && Items[itemData?.ammoName]?.label;
 
   return (
@@ -33,14 +33,14 @@ const SlotTooltip: React.ForwardRefRenderFunction<
       ) : (
         <div style={{ ...style }} className="tooltip-wrapper" ref={ref}>
           <div className="tooltip-header-wrapper">
-            <p>{item.metadata?.label || itemData.label || item.name}</p>
+            <p>{item.info?.label || itemData.label || item.name}</p>
             {inventoryType === 'crafting' ? (
               <div className="tooltip-crafting-duration">
                 <ClockIcon />
                 <p>{(item.duration !== undefined ? item.duration : 3000) / 1000}s</p>
               </div>
             ) : (
-              <p>{item.metadata?.type}</p>
+              <p>{item.info?.type}</p>
             )}
           </div>
           <Divider />
@@ -51,14 +51,14 @@ const SlotTooltip: React.ForwardRefRenderFunction<
           )}
           {inventoryType !== 'crafting' ? (
             <>
-              {item.durability !== undefined && (
+              {item.quality !== undefined && (
                 <p>
-                  {Locale.ui_durability}: {Math.trunc(item.durability)}
+                  {Locale.ui_durability}: {Math.trunc(item.quality)}
                 </p>
               )}
-              {item.metadata?.ammo !== undefined && (
+              {item.info?.ammo !== undefined && (
                 <p>
-                  {Locale.ui_ammo}: {item.metadata.ammo}
+                  {Locale.ui_ammo}: {item.info.ammo}
                 </p>
               )}
               {ammoName && (
@@ -66,29 +66,29 @@ const SlotTooltip: React.ForwardRefRenderFunction<
                   {Locale.ammo_type}: {ammoName}
                 </p>
               )}
-              {item.metadata?.serial && (
+              {item.info?.serie && (
                 <p>
-                  {Locale.ui_serial}: {item.metadata.serial}
+                  {Locale.ui_serial}: {item.info.serie}
                 </p>
               )}
-              {item.metadata?.components && item.metadata?.components[0] && (
+              {item.info?.components && item.info?.components[0] && (
                 <p>
                   {Locale.ui_components}:{' '}
-                  {(item.metadata?.components).map((component: string, index: number, array: []) =>
+                  {(item.info?.components).map((component: string, index: number, array: []) =>
                     index + 1 === array.length ? Items[component]?.label : Items[component]?.label + ', '
                   )}
                 </p>
               )}
-              {item.metadata?.weapontint && (
+              {item.info?.weapontint && (
                 <p>
-                  {Locale.ui_tint}: {item.metadata.weapontint}
+                  {Locale.ui_tint}: {item.info.weapontint}
                 </p>
               )}
-              {additionalMetadata.map((data: { metadata: string; value: string }, index: number) => (
-                <Fragment key={`metadata-${index}`}>
-                  {item.metadata && item.metadata[data.metadata] && (
+              {additionalMetadata.map((data: { info: string; value: string }, index: number) => (
+                <Fragment key={`info-${index}`}>
+                  {item.info && item.info[data.info] && (
                     <p>
-                      {data.value}: {item.metadata[data.metadata]}
+                      {data.value}: {item.info[data.info]}
                     </p>
                   )}
                 </Fragment>

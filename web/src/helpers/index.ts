@@ -66,7 +66,7 @@ export const canCraftItem = (item: Slot, inventoryType: string) => {
     const hasItem = leftInventory.items.find((playerItem) => {
       if (isSlotWithItem(playerItem) && playerItem.name === item) {
         if (count < 1) {
-          if (playerItem.metadata?.durability >= count * 100) return true;
+          if (playerItem.info?.quality >= count * 100) return true;
 
           return false;
         }
@@ -84,12 +84,12 @@ export const isSlotWithItem = (slot: Slot, strict: boolean = false): slot is Slo
   (strict && slot.name !== undefined && slot.count !== undefined && slot.weight !== undefined);
 
 export const canStack = (sourceSlot: Slot, targetSlot: Slot) =>
-  sourceSlot.name === targetSlot.name && isEqual(sourceSlot.metadata, targetSlot.metadata);
+  sourceSlot.name === targetSlot.name && isEqual(sourceSlot.info, targetSlot.info);
 
 export const findAvailableSlot = (item: Slot, data: ItemData, items: Slot[]) => {
   if (!data.stack) return items.find((target) => target.name === undefined);
 
-  const stackableSlot = items.find((target) => target.name === item.name && isEqual(target.metadata, item.metadata));
+  const stackableSlot = items.find((target) => target.name === item.name && isEqual(target.info, item.info));
 
   return stackableSlot || items.find((target) => target.name === undefined);
 };
@@ -109,19 +109,19 @@ export const getTargetInventory = (
     : state.leftInventory,
 });
 
-export const itemDurability = (metadata: any, curTime: number) => {
+export const itemDurability = (info: any, curTime: number) => {
   // sorry dunak
   // it's ok linden i fix inventory
-  if (metadata?.durability === undefined) return;
+  if (info?.quality === undefined) return;
 
-  let durability = metadata.durability;
+  let quality = info.quality;
 
-  if (durability > 100 && metadata.degrade)
-    durability = ((metadata.durability - curTime) / (60 * metadata.degrade)) * 100;
+  if (durability > 100 && info.degrade)
+    quality = ((info.quality - curTime) / (60 * info.degrade)) * 100;
 
-  if (durability < 0) durability = 0;
+  if (durability < 0) quality = 0;
 
-  return durability;
+  return quality;
 };
 
 export const getTotalWeight = (items: Inventory['items']) =>
@@ -144,11 +144,11 @@ export const getItemUrl = (item: string | SlotWithItem) => {
   if (isObj) {
     if (!item.name) return;
 
-    const metadata = item.metadata;
+    const info = item.info;
 
     // @todo validate urls and support webp
-    if (metadata?.imageurl) return `${metadata.imageurl}`;
-    if (metadata?.image) return `${imagepath}/${metadata.image}.png`;
+    if (info?.imageurl) return `${info.imageurl}`;
+    if (info?.image) return `${imagepath}/${info.image}.png`;
   }
 
   const itemName = isObj ? (item.name as string) : item;

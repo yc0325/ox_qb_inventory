@@ -67,7 +67,7 @@ local function TriggerEventHooks(event, payload)
 
 			if event == 'createItem' then
 				if type(response) == 'table' then
-					payload.metadata = response
+					payload.info = response
 				end
 			elseif response == false then
                 return false
@@ -78,7 +78,7 @@ local function TriggerEventHooks(event, payload)
     end
 
 	if event == 'createItem' then
-		return payload.metadata
+		return payload.info
 	end
 
     return true

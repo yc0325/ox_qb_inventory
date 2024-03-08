@@ -14,7 +14,7 @@ interface DataProps {
   action: string;
   component?: string;
   slot?: number;
-  serial?: string;
+  serie?: string;
   id?: number;
 }
 
@@ -59,7 +59,7 @@ const InventoryContext: React.FC = () => {
         fetchNui('removeAmmo', item.slot);
         break;
       case 'copy':
-        setClipboard(data.serial || '');
+        setClipboard(data.serie || '');
         break;
       case 'custom':
         fetchNui('useButton', { id: (data?.id || 0) + 1, slot: item.slot });
@@ -95,19 +95,19 @@ const InventoryContext: React.FC = () => {
         <MenuItem onClick={() => handleClick({ action: 'use' })} label={Locale.ui_use || 'Use'} />
         <MenuItem onClick={() => handleClick({ action: 'give' })} label={Locale.ui_give || 'Give'} />
         <MenuItem onClick={() => handleClick({ action: 'drop' })} label={Locale.ui_drop || 'Drop'} />
-        {item && item.metadata?.ammo > 0 && (
+        {item && item.info?.ammo > 0 && (
           <MenuItem onClick={() => handleClick({ action: 'removeAmmo' })} label={Locale.ui_remove_ammo} />
         )}
-        {item && item.metadata?.serial && (
+        {item && item.info?.serie && (
           <MenuItem
-            onClick={() => handleClick({ action: 'copy', serial: item.metadata?.serial })}
+            onClick={() => handleClick({ action: 'copy', serie: item.info?.serie })}
             label={Locale.ui_copy}
           />
         )}
-        {item && item.metadata?.components && item.metadata?.components.length > 0 && (
+        {item && item.info?.components && item.info?.components.length > 0 && (
           <Menu label={Locale.ui_removeattachments}>
             {item &&
-              item.metadata?.components.map((component: string, index: number) => (
+              item.info?.components.map((component: string, index: number) => (
                 <MenuItem
                   key={index}
                   onClick={() => handleClick({ action: 'remove', component, slot: item.slot })}

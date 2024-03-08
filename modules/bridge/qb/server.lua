@@ -32,7 +32,7 @@ end)
 local function setItemCompatibilityProps(item)
 	if not item then return end
 
-	item.info = item.metadata
+	item.info = item.info
 	item.amount = item.count
 
 	return item
@@ -146,7 +146,7 @@ end
 ---@diagnostic disable-next-line: duplicate-set-field
 function server.hasLicense(inv, license)
 	local player = server.GetPlayerFromId(inv.id)
-	return player and player.PlayerData.metadata.licences[license]
+	return player and player.PlayerData.info.licences[license]
 end
 
 ---@diagnostic disable-next-line: duplicate-set-field
@@ -154,15 +154,15 @@ function server.buyLicense(inv, license)
 	local player = server.GetPlayerFromId(inv.id)
 	if not player then return end
 
-	if player.PlayerData.metadata.licences[license.name] then
+	if player.PlayerData.info.licences[license.name] then
 		return false, 'already_have'
 	elseif Inventory.GetItem(inv, 'money', false, true) < license.price then
 		return false, 'can_not_afford'
 	end
 
 	Inventory.RemoveItem(inv, 'money', license.price)
-	player.PlayerData.metadata.licences[license.name] = true
-	player.Functions.SetMetaData('licences', player.PlayerData.metadata.licences)
+	player.PlayerData.info.licences[license.name] = true
+	player.Functions.SetMetaData('licences', player.PlayerData.info.licences)
 
 	return true, 'have_purchased'
 end
@@ -202,11 +202,11 @@ function server.convertInventory(playerId, items)
 			local item = Items(data.name)
 
 			if item?.name then
-				local metadata, count = Items.Metadata(playerId, item, data.info, data.amount or data.count or 1)
-				local weight = Inventory.SlotWeight(item, {count = count, metadata = metadata})
+				local info, count = Items.info(playerId, item, data.info, data.amount or data.count or 1)
+				local weight = Inventory.SlotWeight(item, {count = count, info = info})
 				totalWeight += weight
 				slot += 1
-				returnData[slot] = {name = item.name, label = item.label, weight = weight, slot = slot, count = count, description = item.description, metadata = metadata, stack = item.stack, close = item.close}
+				returnData[slot] = {name = item.name, label = item.label, weight = weight, slot = slot, count = count, description = item.description, info = info, stack = item.stack, close = item.close}
 			end
 		end
 

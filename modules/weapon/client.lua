@@ -47,11 +47,11 @@ function Weapon.Equip(item, data)
 
 	GiveWeaponToPed(playerPed, data.hash, 0, false, true)
 
-	if item.metadata.tint then SetPedWeaponTintIndex(playerPed, data.hash, item.metadata.tint) end
+	if item.info.tint then SetPedWeaponTintIndex(playerPed, data.hash, item.info.tint) end
 
-	if item.metadata.components then
-		for i = 1, #item.metadata.components do
-			local components = Items[item.metadata.components[i]].client.component
+	if item.info.components then
+		for i = 1, #item.info.components do
+			local components = Items[item.info.components[i]].client.component
 			for v=1, #components do
 				local component = components[v]
 				if DoesWeaponTakeWeaponComponent(data.hash, component) then
@@ -63,16 +63,16 @@ function Weapon.Equip(item, data)
 		end
 	end
 
-	if item.metadata.specialAmmo then
+	if item.info.specialAmmo then
 		local clipComponentKey = ('%s_CLIP'):format(data.model:gsub('WEAPON_', 'COMPONENT_'))
-		local specialClip = ('%s_%s'):format(clipComponentKey, item.metadata.specialAmmo:upper())
+		local specialClip = ('%s_%s'):format(clipComponentKey, item.info.specialAmmo:upper())
 
 		if DoesWeaponTakeWeaponComponent(data.hash, specialClip) then
 			GiveWeaponComponentToPed(playerPed, data.hash, specialClip)
 		end
 	end
 
-	local ammo = item.metadata.ammo or item.throwable and 1 or 0
+	local ammo = item.info.ammo or item.throwable and 1 or 0
 
 	SetCurrentPedWeapon(playerPed, data.hash, true)
 	SetPedCurrentWeaponVisible(playerPed, true, false, false, false)
@@ -81,7 +81,7 @@ function Weapon.Equip(item, data)
 	SetTimeout(0, function() RefillAmmoInstantly(playerPed) end)
 
 	if item.group == `GROUP_PETROLCAN` or item.group == `GROUP_FIREEXTINGUISHER` then
-		item.metadata.ammo = item.metadata.durability
+		item.info.ammo = item.info.quality
 		SetPedInfiniteAmmo(playerPed, true, data.hash)
 	end
 

@@ -20,10 +20,10 @@ const COLORS = {
   accentColor: [211, 84, 0], // Orange (Oragne)
 };
 
-const WeightBar: React.FC<{ percent: number; durability?: boolean }> = ({ percent, durability }) => {
+const WeightBar: React.FC<{ percent: number; quality?: boolean }> = ({ percent, quality }) => {
   const color = React.useMemo(
     () =>
-      durability
+      quality
         ? percent < 50
           ? colorMixer(COLORS.accentColor, COLORS.primaryColor, percent / 100)
           : colorMixer(COLORS.secondColor, COLORS.accentColor, percent / 100)

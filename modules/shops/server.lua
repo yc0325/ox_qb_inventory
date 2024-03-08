@@ -30,13 +30,13 @@ local function setupShopItems(id, shopType, shopName, groups)
 				weight = Item.weight,
 				count = slot.count,
 				price = (server.randomprices and (not slot.currency or slot.currency == 'money')) and (math.ceil(slot.price * (math.random(80, 120)/100))) or slot.price or 0,
-				metadata = slot.metadata,
+				info = slot.info,
 				license = slot.license,
 				currency = slot.currency,
 				grade = slot.grade
 			}
 
-			if slot.metadata then
+			if slot.info then
 				slot.weight = Inventory.SlotWeight(Item, slot, true)
 			end
 
@@ -227,11 +227,11 @@ lib.callback.register('ox_inventory:buyItem', function(source, data)
 
 			local toItem = toData and Items(toData.name)
 
-			local metadata, count = Items.Metadata(playerInv, fromItem, fromData.metadata and table.clone(fromData.metadata) or {}, data.count)
+			local info, count = Items.info(playerInv, fromItem, fromData.info and table.clone(fromData.info) or {}, data.count)
 			local price = count * fromData.price
 
-			if toData == nil or (fromItem.name == toItem?.name and fromItem.stack and table.matches(toData.metadata, metadata)) then
-				local newWeight = playerInv.weight + (fromItem.weight + (metadata?.weight or 0)) * count
+			if toData == nil or (fromItem.name == toItem?.name and fromItem.stack and table.matches(toData.info, info)) then
+				local newWeight = playerInv.weight + (fromItem.weight + (info?.weight or 0)) * count
 
 				if newWeight > playerInv.maxWeight then
 					return false, false, { type = 'error', description = locale('cannot_carry') }
@@ -250,14 +250,14 @@ lib.callback.register('ox_inventory:buyItem', function(source, data)
 					toInventory = playerInv.id,
 					toSlot = data.toSlot,
 					itemName = fromData.name,
-					metadata = metadata,
+					info = info,
 					count = count,
 					price = fromData.price,
 					totalPrice = price,
 					currency = currency,
 				}) then return false end
 
-				Inventory.SetSlot(playerInv, fromItem, count, metadata, data.toSlot)
+				Inventory.SetSlot(playerInv, fromItem, count, info, data.toSlot)
 				playerInv.weight = newWeight
 				removeCurrency(playerInv, currency, price)
 

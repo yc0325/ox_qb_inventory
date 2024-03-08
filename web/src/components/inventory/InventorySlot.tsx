@@ -173,8 +173,8 @@ const InventorySlot: React.ForwardRefRenderFunction<HTMLDivElement, SlotProps> =
             </div>
           </div>
           <div>
-            {inventoryType !== 'shop' && item?.durability !== undefined && (
-              <WeightBar percent={item.durability} durability />
+            {inventoryType !== 'shop' && item?.quality !== undefined && (
+              <WeightBar percent={item.quality} quality />
             )}
             {inventoryType === 'shop' && item?.price !== undefined && (
               <>
@@ -212,7 +212,7 @@ const InventorySlot: React.ForwardRefRenderFunction<HTMLDivElement, SlotProps> =
             )}
             <div className="inventory-slot-label-box">
               <div className="inventory-slot-label-text">
-                {item.metadata?.label ? item.metadata.label : Items[item.name]?.label || item.name}
+                {item.info?.label ? item.info.label : Items[item.name]?.label || item.name}
               </div>
             </div>
           </div>

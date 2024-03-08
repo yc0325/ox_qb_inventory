@@ -26,8 +26,8 @@ local function createCraftingBench(id, data)
 				if needs < 1 then
 					item = Items(ingredient)
 
-					if item and not item.durability then
-						item.durability = true
+					if item and not item.quality then
+						item.quality = true
 					end
 				end
 			end
@@ -113,7 +113,7 @@ lib.callback.register('ox_inventory:craftItem', function(source, id, index, reci
 
 			local craftedItem = Items(recipe.name)
 			local craftCount = (type(recipe.count) == 'number' and recipe.count) or (table.type(recipe.count) == 'array' and math.random(recipe.count[1], recipe.count[2])) or 1
-			local newWeight = left.weight + (craftedItem.weight + (recipe.metadata?.weight or 0)) * craftCount
+			local newWeight = left.weight + (craftedItem.weight + (recipe.info?.weight or 0)) * craftCount
 			---@todo new iterator or something to accept a map
 			local items = Inventory.Search(left, 'slots', tbl) or {}
 			table.wipe(tbl)
@@ -125,16 +125,16 @@ lib.callback.register('ox_inventory:craftItem', function(source, id, index, reci
 					local slot = slots[i]
 
 					if needs == 0 then
-						if not slot.metadata.durability or slot.metadata.durability > 0 then
+						if not slot.info.quality or slot.info.quality > 0 then
 							break
 						end
 					elseif needs < 1 then
 						local item = Items(name)
-						local durability = slot.metadata.durability
+						local quality = slot.info.quality
 
-						if durability and durability >= needs * 100 then
-							if durability > 100 then
-								local degrade = (slot.metadata.degrade or item.degrade) * 60
+						if quality and quality >= needs * 100 then
+							if quality > 100 then
+								local degrade = (slot.info.degrade or item.degrade) * 60
 								local percentage = ((durability - os.time()) * 100) / degrade
 
 								if percentage >= needs * 100 then
@@ -190,10 +190,10 @@ lib.callback.register('ox_inventory:craftItem', function(source, id, index, reci
 
 					if count < 1 then
 						local item = Items(invSlot.name)
-						local durability = invSlot.metadata.durability or 100
+						local quality = invSlot.info.quality or 100
 
-						if durability > 100 then
-							local degrade = (invSlot.metadata.degrade or item.degrade) * 60
+						if quality > 100 then
+							local degrade = (invSlot.info.degrade or item.degrade) * 60
 							durability -= degrade * count
 						else
 							durability -= count * 100
@@ -203,16 +203,16 @@ lib.callback.register('ox_inventory:craftItem', function(source, id, index, reci
 							local emptySlot = Inventory.GetEmptySlot(left)
 
 							if emptySlot then
-								local newItem = Inventory.SetSlot(left, item, 1, table.deepclone(invSlot.metadata), emptySlot)
+								local newItem = Inventory.SetSlot(left, item, 1, table.deepclone(invSlot.info), emptySlot)
 
 								if newItem then
-                                    Items.UpdateDurability(left, newItem, item, durability < 0 and 0 or durability)
+                                    Items.UpdateDurability(left, newItem, item, quality < 0 and 0 or quality)
 								end
 							end
 
 							invSlot.count -= 1
 						else
-                            Items.UpdateDurability(left, invSlot, item, durability < 0 and 0 or durability)
+                            Items.UpdateDurability(left, invSlot, item, quality < 0 and 0 or quality)
 						end
 					else
 						local removed = invSlot and Inventory.RemoveItem(left, invSlot.name, count, nil, slot)
@@ -221,7 +221,7 @@ lib.callback.register('ox_inventory:craftItem', function(source, id, index, reci
 					end
 				end
 
-				Inventory.AddItem(left, craftedItem, craftCount, recipe.metadata or {}, craftedItem.stack and toSlot or nil)
+				Inventory.AddItem(left, craftedItem, craftCount, recipe.info or {}, craftedItem.stack and toSlot or nil)
 			end
 
 			return success

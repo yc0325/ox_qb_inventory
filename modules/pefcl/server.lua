@@ -41,9 +41,9 @@ exports('getCards', function(source)
 			if data.name == 'mastercard' then
 				num += 1
 				retval[num] = {
-					id = data.metadata.id,
-					holder = data.metadata.holder,
-					number = data.metadata.number
+					id = data.info.id,
+					holder = data.info.holder,
+					number = data.info.number
 				}
 			end
 		end

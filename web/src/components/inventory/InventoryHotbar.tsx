@@ -55,10 +55,10 @@ const InventoryHotbar: React.FC = () => {
                   </div>
                 </div>
                 <div>
-                  {item?.durability !== undefined && <WeightBar percent={item.durability} durability />}
+                  {item?.quality !== undefined && <WeightBar percent={item.quality} quality />}
                   <div className="inventory-slot-label-box">
                     <div className="inventory-slot-label-text">
-                      {item.metadata?.label ? item.metadata.label : Items[item.name]?.label || item.name}
+                      {item.info?.label ? item.info.label : Items[item.name]?.label || item.name}
                     </div>
                   </div>
                 </div>

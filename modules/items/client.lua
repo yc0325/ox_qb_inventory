@@ -10,28 +10,28 @@ local function sendDisplayMetadata(data)
 end
 
 --- use array of single key value pairs to dictate order
----@param metadata string | table<string, string> | table<string, string>[]
+---@param info string | table<string, string> | table<string, string>[]
 ---@param value? string
-local function displayMetadata(metadata, value)
+local function displayMetadata(info, value)
 	local data = {}
 
-	if type(metadata) == 'string' then
+	if type(info) == 'string' then
         if not value then return end
 
-        data = { { metadata = metadata, value = value } }
-	elseif table.type(metadata) == 'array' then
-		for i = 1, #metadata do
-			for k, v in pairs(metadata[i]) do
+        data = { { info = info, value = value } }
+	elseif table.type(info) == 'array' then
+		for i = 1, #info do
+			for k, v in pairs(info[i]) do
 				data[i] = {
-					metadata = k,
+					info = k,
 					value = v,
 				}
 			end
 		end
 	else
-		for k, v in pairs(metadata) do
+		for k, v in pairs(info) do
 			data[#data + 1] = {
-				metadata = k,
+				info = k,
 				value = v,
 			}
 		end
@@ -121,8 +121,8 @@ Item('parachute', function(data, slot)
 				SetPedGadget(cache.ped, chute, true)
 				lib.requestModel(1269906701)
 				client.parachute = CreateParachuteBagObject(cache.ped, true, true)
-				if slot.metadata.type then
-					SetPlayerParachuteTintIndex(PlayerData.id, slot.metadata.type)
+				if slot.info.type then
+					SetPlayerParachuteTintIndex(PlayerData.id, slot.info.type)
 				end
 			end
 		end)
@@ -140,47 +140,47 @@ Item('phone', function(data, slot)
 end)
 
 Item('clothing', function(data, slot)
-	local metadata = slot.metadata
+	local info = slot.info
 
-	if not metadata.drawable then return print('Clothing is missing drawable in metadata') end
-	if not metadata.texture then return print('Clothing is missing texture in metadata') end
+	if not info.drawable then return print('Clothing is missing drawable in info') end
+	if not info.texture then return print('Clothing is missing texture in info') end
 
-	if metadata.prop then
-		if not SetPedPreloadPropData(cache.ped, metadata.prop, metadata.drawable, metadata.texture) then
+	if info.prop then
+		if not SetPedPreloadPropData(cache.ped, info.prop, info.drawable, info.texture) then
 			return print('Clothing has invalid prop for this ped')
 		end
-	elseif metadata.component then
-		if not IsPedComponentVariationValid(cache.ped, metadata.component, metadata.drawable, metadata.texture) then
+	elseif info.component then
+		if not IsPedComponentVariationValid(cache.ped, info.component, info.drawable, info.texture) then
 			return print('Clothing has invalid component for this ped')
 		end
 	else
-		return print('Clothing is missing prop/component id in metadata')
+		return print('Clothing is missing prop/component id in info')
 	end
 
 	ox_inventory:useItem(data, function(data)
 		if data then
-			metadata = data.metadata
+			info = data.info
 
-			if metadata.prop then
-				local prop = GetPedPropIndex(cache.ped, metadata.prop)
-				local texture = GetPedPropTextureIndex(cache.ped, metadata.prop)
+			if info.prop then
+				local prop = GetPedPropIndex(cache.ped, info.prop)
+				local texture = GetPedPropTextureIndex(cache.ped, info.prop)
 
-				if metadata.drawable == prop and metadata.texture == texture then
-					return ClearPedProp(cache.ped, metadata.prop)
+				if info.drawable == prop and info.texture == texture then
+					return ClearPedProp(cache.ped, info.prop)
 				end
 
 				-- { prop = 0, drawable = 2, texture = 1 } = grey beanie
-				SetPedPropIndex(cache.ped, metadata.prop, metadata.drawable, metadata.texture, false);
-			elseif metadata.component then
-				local drawable = GetPedDrawableVariation(cache.ped, metadata.component)
-				local texture = GetPedTextureVariation(cache.ped, metadata.component)
+				SetPedPropIndex(cache.ped, info.prop, info.drawable, info.texture, false);
+			elseif info.component then
+				local drawable = GetPedDrawableVariation(cache.ped, info.component)
+				local texture = GetPedTextureVariation(cache.ped, info.component)
 
-				if metadata.drawable == drawable and metadata.texture == texture then
+				if info.drawable == drawable and info.texture == texture then
 					return -- item matches (setup defaults so we can strip?)
 				end
 
 				-- { component = 4, drawable = 4, texture = 1 } = jeans w/ belt
-				SetPedComponentVariation(cache.ped, metadata.component, metadata.drawable, metadata.texture, 0);
+				SetPedComponentVariation(cache.ped, info.component, info.drawable, info.texture, 0);
 			end
 		end
 	end)

@@ -8,8 +8,8 @@ RegisterNetEvent('QBCore:Client:OnPlayerUnload', onLogout)
 RegisterNetEvent('QBCore:Player:SetPlayerData', function(data)
 	if source == '' or not PlayerData.loaded then return end
 
-	if (data.metadata.isdead or data.metadata.inlaststand) ~= PlayerData.dead then
-		PlayerData.dead = data.metadata.isdead or data.metadata.inlaststand
+	if (data.info.isdead or data.info.inlaststand) ~= PlayerData.dead then
+		PlayerData.dead = data.info.isdead or data.info.inlaststand
 		OnPlayerData('dead', PlayerData.dead)
 	end
 
@@ -44,9 +44,9 @@ function client.setPlayerStatus(values)
 		end
 
 		if name == "hunger" then
-			TriggerServerEvent('consumables:server:addHunger', QBCore.Functions.GetPlayerData().metadata.hunger + value)
+			TriggerServerEvent('consumables:server:addHunger', QBCore.Functions.GetPlayerData().info.hunger + value)
 		elseif name == "thirst" then
-			TriggerServerEvent('consumables:server:addThirst', QBCore.Functions.GetPlayerData().metadata.thirst + value)
+			TriggerServerEvent('consumables:server:addThirst', QBCore.Functions.GetPlayerData().info.thirst + value)
 		elseif name == "stress" then
 			if value > 0 then
 				TriggerServerEvent('hud:server:GainStress', value)

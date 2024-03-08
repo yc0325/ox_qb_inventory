@@ -80,7 +80,7 @@ return {
 			{ name = 'ammo-9', price = 5, },
 			{ name = 'WEAPON_KNIFE', price = 200 },
 			{ name = 'WEAPON_BAT', price = 100 },
-			{ name = 'WEAPON_PISTOL', price = 1000, metadata = { registered = true }, license = 'weapon' }
+			{ name = 'WEAPON_PISTOL', price = 1000, info = { registered = true }, license = 'weapon' }
 		}, locations = {
 			vec3(-662.180, -934.961, 21.829),
 			vec3(810.25, -2157.60, 29.62),
@@ -114,9 +114,9 @@ return {
 			{ name = 'ammo-rifle', price = 5, },
 			{ name = 'WEAPON_FLASHLIGHT', price = 200 },
 			{ name = 'WEAPON_NIGHTSTICK', price = 100 },
-			{ name = 'WEAPON_PISTOL', price = 500, metadata = { registered = true, serial = 'POL' }, license = 'weapon' },
-			{ name = 'WEAPON_CARBINERIFLE', price = 1000, metadata = { registered = true, serial = 'POL' }, license = 'weapon', grade = 3 },
-			{ name = 'WEAPON_STUNGUN', price = 500, metadata = { registered = true, serial = 'POL'} }
+			{ name = 'WEAPON_PISTOL', price = 500, info = { registered = true, serie = 'POL' }, license = 'weapon' },
+			{ name = 'WEAPON_CARBINERIFLE', price = 1000, info = { registered = true, serie = 'POL' }, license = 'weapon', grade = 3 },
+			{ name = 'WEAPON_STUNGUN', price = 500, info = { registered = true, serie = 'POL'} }
 		}, locations = {
 			vec3(451.51, -979.44, 30.68)
 		}, targets = {
@@ -144,8 +144,8 @@ return {
 	BlackMarketArms = {
 		name = 'Black Market (Arms)',
 		inventory = {
-			{ name = 'WEAPON_DAGGER', price = 5000, metadata = { registered = false	}, currency = 'black_money' },
-			{ name = 'WEAPON_CERAMICPISTOL', price = 50000, metadata = { registered = false }, currency = 'black_money' },
+			{ name = 'WEAPON_DAGGER', price = 5000, info = { registered = false	}, currency = 'black_money' },
+			{ name = 'WEAPON_CERAMICPISTOL', price = 50000, info = { registered = false }, currency = 'black_money' },
 			{ name = 'at_suppressor_light', price = 50000, currency = 'black_money' },
 			{ name = 'ammo-rifle', price = 1000, currency = 'black_money' },
 			{ name = 'ammo-rifle2', price = 1000, currency = 'black_money' }

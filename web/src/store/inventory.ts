@@ -39,15 +39,15 @@ export const inventorySlice = createSlice({
     setupInventory: setupInventoryReducer,
     moveSlots: moveSlotsReducer,
     refreshSlots: refreshSlotsReducer,
-    setAdditionalMetadata: (state, action: PayloadAction<Array<{ metadata: string; value: string }>>) => {
-      const metadata = [];
+    setAdditionalMetadata: (state, action: PayloadAction<Array<{ info: string; value: string }>>) => {
+      const info = [];
 
       for (let i = 0; i < action.payload.length; i++) {
         const entry = action.payload[i];
-        if (!state.additionalMetadata.find((el) => el.value === entry.value)) metadata.push(entry);
+        if (!state.additionalMetadata.find((el) => el.value === entry.value)) info.push(entry);
       }
 
-      state.additionalMetadata = [...state.additionalMetadata, ...metadata];
+      state.additionalMetadata = [...state.additionalMetadata, ...info];
     },
     setItemAmount: (state, action: PayloadAction<number>) => {
       state.itemAmount = action.payload;
@@ -56,7 +56,7 @@ export const inventorySlice = createSlice({
       state.shiftPressed = action.payload;
     },
     setContainerWeight: (state, action: PayloadAction<number>) => {
-      const container = state.leftInventory.items.find((item) => item.metadata?.container === state.rightInventory.id);
+      const container = state.leftInventory.items.find((item) => item.info?.container === state.rightInventory.id);
 
       if (!container) return;
 

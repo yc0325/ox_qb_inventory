@@ -34,9 +34,9 @@ local function newItem(data)
 			data.cb = useExport(string.strsplit('.', serverData.export))
 		end
 
-		if not data.durability then
+		if not data.quality then
 			if data.degrade or (data.consume and data.consume ~= 0 and data.consume < 1) then
-				data.durability = true
+				data.quality = true
 			end
 		end
 	else
@@ -66,7 +66,7 @@ for type, data in pairs(data('weapons')) do
 			v.model = v.model or k -- actually weapon type or such? model for compatibility
 			v.hash = joaat(v.model)
 			v.stack = v.throwable and true or false
-			v.durability = v.durability or 0.05
+			v.quality = v.quality or 0.05
 			v.weapon = true
 		else
 			v.stack = true
@@ -99,7 +99,7 @@ end
 
 for k, v in pairs(QBCore.Shared.Items) do
 
-	if v.unique then v.stack = v.unique end
+	if v.unique then v.stack = not v.unique end
 	if v.shouldClose then v.close = v.shouldClose end
 	if v.decay then v.degrade = v.decay end
 	if v.delete then v.decay = v.delete end

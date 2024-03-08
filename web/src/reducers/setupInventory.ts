@@ -27,7 +27,7 @@ export const setupInventoryReducer: CaseReducer<
           getItemData(item.name);
         }
 
-        item.durability = itemDurability(item.metadata, curTime);
+        item.quality = itemDurability(item.info, curTime);
         return item;
       }),
     };
@@ -46,7 +46,7 @@ export const setupInventoryReducer: CaseReducer<
           getItemData(item.name);
         }
 
-        item.durability = itemDurability(item.metadata, curTime);
+        item.quality = itemDurability(item.info, curTime);
         return item;
       }),
     };

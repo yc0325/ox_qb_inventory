@@ -25,7 +25,7 @@ export const refreshSlotsReducer: CaseReducer<State, PayloadAction<Payload>> = (
             : state.leftInventory
           : state.leftInventory;
 
-        data.item.durability = itemDurability(data.item.metadata, curTime);
+        data.item.quality = itemDurability(data.item.info, curTime);
         targetInventory.items[data.item.slot - 1] = data.item;
       });
 

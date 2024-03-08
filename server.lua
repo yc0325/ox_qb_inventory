@@ -44,11 +44,11 @@ function server.setPlayerInventory(player, data)
 				local item = Items(v.name)
 
 				if item then
-					v.metadata = Items.CheckMetadata(v.metadata or {}, item, v.name, ostime)
+					v.info = Items.CheckMetadata(v.info or {}, item, v.name, ostime)
 					local weight = Inventory.SlotWeight(item, v)
 					totalWeight = totalWeight + weight
 
-					inventory[v.slot] = {name = item.name, label = item.label, weight = weight, slot = v.slot, count = v.count, description = item.description, metadata = v.metadata, stack = item.stack, close = item.close}
+					inventory[v.slot] = {name = item.name, label = item.label, weight = weight, slot = v.slot, count = v.count, description = item.description, info = v.info, stack = item.stack, close = item.close}
 				end
 			end
 		end
@@ -145,10 +145,10 @@ local function openInventory(source, invType, data, ignoreSecurityChecks)
 			data = left.items[data]
 
 			if data then
-				right = Inventory(data.metadata.container)
+				right = Inventory(data.info.container)
 
 				if not right then
-					right = Inventory.Create(data.metadata.container, data.label, invType, data.metadata.size[1], 0, data.metadata.size[2], false)
+					right = Inventory.Create(data.info.container, data.label, invType, data.info.size[1], 0, data.info.size[2], false)
 				end
 			else left.containerSlot = nil end
 		else right = Inventory(data) end
@@ -244,9 +244,9 @@ lib.callback.register('ox_inventory:buyLicense', function(source, id)
 	return server.buyLicense(inventory, license)
 end)
 
-lib.callback.register('ox_inventory:getItemCount', function(source, item, metadata, target)
+lib.callback.register('ox_inventory:getItemCount', function(source, item, info, target)
 	local inventory = target and Inventory(target) or Inventory(source)
-	return (inventory and Inventory.GetItem(inventory, item, metadata, true)) or 0
+	return (inventory and Inventory.GetItem(inventory, item, info, true)) or 0
 end)
 
 lib.callback.register('ox_inventory:getInventory', function(source, id)
@@ -266,40 +266,40 @@ end)
 ---@param source number
 ---@param itemName string
 ---@param slot number?
----@param metadata { [string]: any }?
+---@param info { [string]: any }?
 ---@return table | boolean | nil
-lib.callback.register('ox_inventory:useItem', function(source, itemName, slot, metadata)
+lib.callback.register('ox_inventory:useItem', function(source, itemName, slot, info)
 	local inventory = Inventory(source) --[[@as OxInventory]]
 
 	if inventory.player then
 		local item = Items(itemName)
-		local data = item and (slot and inventory.items[slot] or Inventory.GetSlotWithItem(inventory, item.name, metadata, true))
+		local data = item and (slot and inventory.items[slot] or Inventory.GetSlotWithItem(inventory, item.name, info, true))
 
 		if not data then return end
 
 		slot = data.slot
-		local durability = data.metadata.durability --[[@as number|boolean|nil]]
+		local quality = data.info.quality --[[@as number|boolean|nil]]
 		local consume = item.consume
-		local label = data.metadata.label or item.label
+		local label = data.info.label or item.label
 
-		if durability and consume then
-			if durability > 100 then
+		if quality and consume then
+			if quality > 100 then
 				local ostime = os.time()
 
-				if ostime > durability then
+				if ostime > quality then
                     Items.UpdateDurability(inventory, data, item, 0)
 					return TriggerClientEvent('ox_lib:notify', source, { type = 'error', description = locale('no_durability', label) })
 				elseif consume ~= 0 and consume < 1 then
-					local degrade = (data.metadata.degrade or item.degrade) * 60
+					local degrade = (data.info.degrade or item.degrade) * 60
 					local percentage = ((durability - ostime) * 100) / degrade
 
 					if percentage < consume * 100 then
 						return TriggerClientEvent('ox_lib:notify', source, { type = 'error', description = locale('not_enough_durability', label) })
 					end
 				end
-			elseif durability <= 0 then
+			elseif quality <= 0 then
 				return TriggerClientEvent('ox_lib:notify', source, { type = 'error', description = locale('no_durability', label) })
-			elseif consume ~= 0 and consume < 1 and durability < consume * 100 then
+			elseif consume ~= 0 and consume < 1 and quality < consume * 100 then
 				return TriggerClientEvent('ox_lib:notify', source, { type = 'error', description = locale('not_enough_durability', label) })
 			end
 
@@ -309,13 +309,13 @@ lib.callback.register('ox_inventory:useItem', function(source, itemName, slot, m
 		end
 
 		if item and data and data.count > 0 and data.name == item.name then
-			data = {name=data.name, label=label, count=data.count, slot=slot, metadata=data.metadata, weight=data.weight}
+			data = {name=data.name, label=label, count=data.count, slot=slot, info=data.info, weight=data.weight}
 
 			if item.ammo then
 				if inventory.weapon then
 					local weapon = inventory.items[inventory.weapon]
 
-					if weapon and weapon?.metadata.durability > 0 then
+					if weapon and weapon?.info.quality > 0 then
 						consume = nil
 					end
 				else return false end
@@ -358,11 +358,11 @@ lib.callback.register('ox_inventory:useItem', function(source, itemName, slot, m
 
 				if not data then return end
 
-				durability = consume ~= 0 and consume < 1 and data.metadata.durability --[[@as number | false]]
+				durability = consume ~= 0 and consume < 1 and data.info.quality --[[@as number | false]]
 
-				if durability then
-					if durability > 100 then
-						local degrade = (data.metadata.degrade or item.degrade) * 60
+				if quality then
+					if quality > 100 then
+						local degrade = (data.info.degrade or item.degrade) * 60
 						durability -= degrade * consume
 					else
 						durability -= consume * 100
@@ -372,24 +372,24 @@ lib.callback.register('ox_inventory:useItem', function(source, itemName, slot, m
 						local emptySlot = Inventory.GetEmptySlot(inventory)
 
 						if emptySlot then
-							local newItem = Inventory.SetSlot(inventory, item, 1, table.deepclone(data.metadata), emptySlot)
+							local newItem = Inventory.SetSlot(inventory, item, 1, table.deepclone(data.info), emptySlot)
 
 							if newItem then
-                                Items.UpdateDurability(inventory, newItem, item, durability)
+                                Items.UpdateDurability(inventory, newItem, item, quality)
 							end
 						end
 
 						durability = 0
 					else
-                        Items.UpdateDurability(inventory, data, item, durability)
+                        Items.UpdateDurability(inventory, data, item, quality)
 					end
 
-					if durability <= 0 then
+					if quality <= 0 then
 						durability = false
 					end
 				end
 
-				if not durability then
+				if not quality then
 					Inventory.RemoveItem(inventory.id, data.name, consume < 1 and 1 or consume, nil, data.slot)
 				else
 					inventory.changed = true
@@ -438,7 +438,7 @@ lib.addCommand({'additem', 'giveitem'}, {
 		{ name = 'target', type = 'playerId', help = 'The player to receive the item' },
 		{ name = 'item', type = 'string', help = 'The name of the item' },
 		{ name = 'count', type = 'number', help = 'The amount of the item to give', optional = true },
-		{ name = 'type', help = 'Sets the "type" metadata to the value', optional = true },
+		{ name = 'type', help = 'Sets the "type" info to the value', optional = true },
 	},
 	restricted = 'group.admin',
 }, function(source, args)
@@ -467,7 +467,7 @@ lib.addCommand('removeitem', {
 		{ name = 'target', type = 'playerId', help = 'The player to remove the item from' },
 		{ name = 'item', type = 'string', help = 'The name of the item' },
 		{ name = 'count', type = 'number', help = 'The amount of the item to take' },
-		{ name = 'type', help = 'Only remove items with a matching metadata "type"', optional = true },
+		{ name = 'type', help = 'Only remove items with a matching info "type"', optional = true },
 	},
 	restricted = 'group.admin',
 }, function(source, args)
@@ -495,7 +495,7 @@ lib.addCommand('setitem', {
 		{ name = 'target', type = 'playerId', help = 'The player to set the items for' },
 		{ name = 'item', type = 'string', help = 'The name of the item' },
 		{ name = 'count', type = 'number', help = 'The amount of items to set', optional = true },
-		{ name = 'type', help = 'Add or remove items with the metadata "type"', optional = true },
+		{ name = 'type', help = 'Add or remove items with the info "type"', optional = true },
 	},
 	restricted = 'group.admin',
 }, function(source, args)

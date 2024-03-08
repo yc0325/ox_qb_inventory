@@ -113,8 +113,8 @@ end
 
 ---@param search 'slots' | 1 | 'count' | 2
 ---@param item table | string
----@param metadata? table | string
-function Inventory.Search(search, item, metadata)
+---@param info? table | string
+function Inventory.Search(search, item, info)
 	if not PlayerData.loaded then
 		if not coroutine.running() then
 			error('player inventory has not yet loaded.')
@@ -126,7 +126,7 @@ function Inventory.Search(search, item, metadata)
 	if item then
 		if search == 'slots' then search = 1 elseif search == 'count' then search = 2 end
 		if type(item) == 'string' then item = {item} end
-		if type(metadata) == 'string' then metadata = {type=metadata} end
+		if type(info) == 'string' then info = {type=info} end
 
 		local items = #item
 		local returnData = {}
@@ -137,8 +137,8 @@ function Inventory.Search(search, item, metadata)
 			elseif search == 2 then returnData[item] = 0 end
 			for _, v in pairs(PlayerData.inventory) do
 				if v.name == item then
-					if not v.metadata then v.metadata = {} end
-					if not metadata or table.contains(v.metadata, metadata) then
+					if not v.info then v.info = {} end
+					if not info or table.contains(v.info, info) then
 						if search == 1 then returnData[item][#returnData[item]+1] = PlayerData.inventory[v.slot]
 						elseif search == 2 then
 							returnData[item] += v.count
@@ -167,29 +167,29 @@ end)
 
 local Items = require 'modules.items.client'
 
-local function assertMetadata(metadata)
-	if metadata and type(metadata) ~= 'table' then
-		metadata = metadata and { type = metadata or nil }
+local function assertMetadata(info)
+	if info and type(info) ~= 'table' then
+		info = info and { type = info or nil }
 	end
 
-	return metadata
+	return info
 end
 
 ---@param itemName string
----@param metadata? any
----@param strict? boolean Strictly match metadata properties, otherwise use partial matching.
+---@param info? any
+---@param strict? boolean Strictly match info properties, otherwise use partial matching.
 ---@return SlotWithItem?
-function Inventory.GetSlotWithItem(itemName, metadata, strict)
+function Inventory.GetSlotWithItem(itemName, info, strict)
 	local inventory = PlayerData.inventory
 	local item = Items(itemName) --[[@as OxClientItem?]]
 
 	if not inventory or not item then return end
 
-	metadata = assertMetadata(metadata)
+	info = assertMetadata(info)
 	local tablematch = strict and table.matches or table.contains
 
 	for _, slotData in pairs(inventory) do
-		if slotData and slotData.name == item.name and (not metadata or tablematch(slotData.metadata, metadata)) then
+		if slotData and slotData.name == item.name and (not info or tablematch(slotData.info, info)) then
 			return slotData
 		end
 	end
@@ -198,33 +198,33 @@ end
 exports('GetSlotWithItem', Inventory.GetSlotWithItem)
 
 ---@param itemName string
----@param metadata? any
----@param strict? boolean Strictly match metadata properties, otherwise use partial matching.
+---@param info? any
+---@param strict? boolean Strictly match info properties, otherwise use partial matching.
 ---@return number?
-function Inventory.GetSlotIdWithItem(itemName, metadata, strict)
-	return Inventory.GetSlotWithItem(itemName, metadata, strict)?.slot
+function Inventory.GetSlotIdWithItem(itemName, info, strict)
+	return Inventory.GetSlotWithItem(itemName, info, strict)?.slot
 end
 
 exports('GetSlotIdWithItem', Inventory.GetSlotIdWithItem)
 
 ---@param itemName string
----@param metadata? any
----@param strict? boolean Strictly match metadata properties, otherwise use partial matching.
+---@param info? any
+---@param strict? boolean Strictly match info properties, otherwise use partial matching.
 ---@return SlotWithItem[]?
-function Inventory.GetSlotsWithItem(itemName, metadata, strict)
+function Inventory.GetSlotsWithItem(itemName, info, strict)
 	local inventory = PlayerData.inventory
 	local item = Items(itemName) --[[@as OxClientItem?]]
 
 	if not inventory or not item then return end
 
 
-	metadata = assertMetadata(metadata)
+	info = assertMetadata(info)
 	local response = {}
 	local n = 0
 	local tablematch = strict and table.matches or table.contains
 
 	for _, slotData in pairs(inventory) do
-		if slotData and slotData.name == item.name and (not metadata or tablematch(slotData.metadata, metadata)) then
+		if slotData and slotData.name == item.name and (not info or tablematch(slotData.info, info)) then
 			n += 1
 			response[n] = slotData
 		end
@@ -236,11 +236,11 @@ end
 exports('GetSlotsWithItem', Inventory.GetSlotsWithItem)
 
 ---@param itemName string
----@param metadata? any
----@param strict? boolean Strictly match metadata properties, otherwise use partial matching.
+---@param info? any
+---@param strict? boolean Strictly match info properties, otherwise use partial matching.
 ---@return number[]?
-function Inventory.GetSlotIdsWithItem(itemName, metadata, strict)
-	local items = Inventory.GetSlotsWithItem(itemName, metadata, strict)
+function Inventory.GetSlotIdsWithItem(itemName, info, strict)
+	local items = Inventory.GetSlotsWithItem(itemName, info, strict)
 
 	if items then
 		---@cast items +number[]
@@ -253,26 +253,26 @@ function Inventory.GetSlotIdsWithItem(itemName, metadata, strict)
 end
 
 ---@param itemName string
----@param metadata? any
----@param strict? boolean Strictly match metadata properties, otherwise use partial matching.
+---@param info? any
+---@param strict? boolean Strictly match info properties, otherwise use partial matching.
 ---@return number
-function Inventory.GetItemCount(itemName, metadata, strict)
+function Inventory.GetItemCount(itemName, info, strict)
 	local inventory = PlayerData.inventory
 	local item = Items(itemName) --[[@as OxClientItem?]]
 
 	if not inventory or not item then return 0 end
 
-	if not metadata then
+	if not info then
 		return item.count
 	end
 
 
-	metadata = assertMetadata(metadata)
+	info = assertMetadata(info)
 	local count = 0
 	local tablematch = strict and table.matches or table.contains
 
 	for _, slotData in pairs(inventory) do
-		if slotData and slotData.name == item.name and (not metadata or tablematch(slotData.metadata, metadata)) then
+		if slotData and slotData.name == item.name and (not info or tablematch(slotData.info, info)) then
 			count += slotData.count
 		end
 	end
