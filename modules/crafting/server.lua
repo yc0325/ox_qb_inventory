@@ -135,7 +135,7 @@ lib.callback.register('ox_inventory:craftItem', function(source, id, index, reci
 						if quality and quality >= needs * 100 then
 							if quality > 100 then
 								local degrade = (slot.info.degrade or item.degrade) * 60
-								local percentage = ((durability - os.time()) * 100) / degrade
+								local percentage = ((quality - os.time()) * 100) / degrade
 
 								if percentage >= needs * 100 then
 									tbl[slot.slot] = needs
@@ -194,9 +194,9 @@ lib.callback.register('ox_inventory:craftItem', function(source, id, index, reci
 
 						if quality > 100 then
 							local degrade = (invSlot.info.degrade or item.degrade) * 60
-							durability -= degrade * count
+							quality -= degrade * count
 						else
-							durability -= count * 100
+							quality -= count * 100
 						end
 
 						if invSlot.count > 1 then

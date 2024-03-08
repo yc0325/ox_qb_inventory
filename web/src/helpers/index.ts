@@ -116,10 +116,10 @@ export const itemDurability = (info: any, curTime: number) => {
 
   let quality = info.quality;
 
-  if (durability > 100 && info.degrade)
+  if (quality > 100 && info.degrade)
     quality = ((info.quality - curTime) / (60 * info.degrade)) * 100;
 
-  if (durability < 0) quality = 0;
+  if (quality < 0) quality = 0;
 
   return quality;
 };

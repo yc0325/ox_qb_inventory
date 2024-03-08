@@ -30,11 +30,11 @@ const WeightBar: React.FC<{ percent: number; quality?: boolean }> = ({ percent, 
         : percent > 50
         ? colorMixer(COLORS.primaryColor, COLORS.accentColor, percent / 100)
         : colorMixer(COLORS.accentColor, COLORS.secondColor, percent / 50),
-    [durability, percent]
+    [quality, percent]
   );
 
   return (
-    <div className={durability ? 'durability-bar' : 'weight-bar'}>
+    <div className={quality ? 'quality-bar' : 'weight-bar'}>
       <div
         style={{
           visibility: percent > 0 ? 'visible' : 'hidden',

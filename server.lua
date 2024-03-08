@@ -291,7 +291,7 @@ lib.callback.register('ox_inventory:useItem', function(source, itemName, slot, i
 					return TriggerClientEvent('ox_lib:notify', source, { type = 'error', description = locale('no_durability', label) })
 				elseif consume ~= 0 and consume < 1 then
 					local degrade = (data.info.degrade or item.degrade) * 60
-					local percentage = ((durability - ostime) * 100) / degrade
+					local percentage = ((quality - ostime) * 100) / degrade
 
 					if percentage < consume * 100 then
 						return TriggerClientEvent('ox_lib:notify', source, { type = 'error', description = locale('not_enough_durability', label) })
@@ -358,14 +358,14 @@ lib.callback.register('ox_inventory:useItem', function(source, itemName, slot, i
 
 				if not data then return end
 
-				durability = consume ~= 0 and consume < 1 and data.info.quality --[[@as number | false]]
+				quality = consume ~= 0 and consume < 1 and data.info.quality --[[@as number | false]]
 
 				if quality then
 					if quality > 100 then
 						local degrade = (data.info.degrade or item.degrade) * 60
-						durability -= degrade * consume
+						quality -= degrade * consume
 					else
-						durability -= consume * 100
+						quality -= consume * 100
 					end
 
 					if data.count > 1 then
@@ -379,13 +379,13 @@ lib.callback.register('ox_inventory:useItem', function(source, itemName, slot, i
 							end
 						end
 
-						durability = 0
+						quality = 0
 					else
                         Items.UpdateDurability(inventory, data, item, quality)
 					end
 
 					if quality <= 0 then
-						durability = false
+						quality = false
 					end
 				end
 
